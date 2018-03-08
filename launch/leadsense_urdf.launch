@@ -1,0 +1,11 @@
+<launch>
+
+  <include file="$(find leadsense_ros)/launch/leadsense_tf.launch" />
+
+  <!-- ROS URDF description of the leadsense -->
+  <param name="leadsense_description" textfile="$(find leadsense_ros)/urdf/leadsense.urdf" />
+  <node name="leadsense_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+    <remap from="robot_description" to="leadsense_description" />
+  </node>
+  
+</launch>

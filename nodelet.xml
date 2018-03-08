@@ -1,0 +1,10 @@
+<library path="lib/libleadsense_ros_nodelet">
+
+	<class name="leadsense_ros/leadsense_ros_nodelet"
+		type="leadsense_ros::LeadSenseNodelet"
+		base_class_type="nodelet::Nodelet">
+		<description>
+			This is the nodelet of ROS interface for LeadSense Stereo Camera.
+		</description>
+  	</class>
+</library>

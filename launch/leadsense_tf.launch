@@ -1,0 +1,18 @@
+<launch>
+  <arg name="tf_prefix" default="" />
+  <arg name="pi/2" value="1.5707963267948966" />
+  <arg name="optical_rotate" value="0 0 0 -$(arg pi/2) 0 -$(arg pi/2)" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="leadsense_base_link1"
+    args="0 0 0 0 0 0 1 map $(arg tf_prefix)/leadsense_initial_frame" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="leadsense_base_link2"
+    args="0 0 0 0 0 0 1 $(arg tf_prefix)/leadsense_initial_frame leadsense_current_frame" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="leadsense_base_link3"
+    args="0 0 0 0 0 0 1 $(arg tf_prefix)/leadsense_current_frame leadsense_left_camera" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="leadsense_base_link4"
+    args="0 0 0 0 0 0 1 $(arg tf_prefix)/leadsense_current_frame leadsense_depth_frame" />
+
+</launch>

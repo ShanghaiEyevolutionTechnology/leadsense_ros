@@ -1,0 +1,49 @@
+<launch>
+ 
+  <arg name="device_id"/>
+  <arg name="ros_rate"/>
+  <arg name="resolution_fps"/>
+  <arg name="work_mode"/>
+  <arg name="auto_exposure"/>
+  <arg name="exposure_time"/>
+  <arg name="confidence"/>
+  <arg name="depth_raws_ratio"/>
+  <arg name="depth_cols_ratio"/>
+
+  <include file="$(find leadsense_ros)/launch/leadsense_tf.launch" />
+
+  <node name="leadsense_ros_node" pkg="leadsense_ros" type="leadsense_ros_node" output="screen">
+    <!-- leadsense parameters -->
+    <param name="deviceId"              value="$(arg device_id)" />
+    <param name="ros_rate"            value="$(arg ros_rate)" />
+    <param name="resolution_fps"            value="$(arg resolution_fps)" />
+    <param name="work_mode"             value="$(arg work_mode)" />
+    <param name="confidence"            value="$(arg confidence)"/>
+    <param name="exposure_time" value="$(arg exposure_time)"/>
+    <param name="auto_exposure" value="$(arg auto_exposure)"/>
+  
+    <param name="depth_raws_ratio"      value="$(arg depth_raws_ratio)"/>
+    <param name="depth_cols_ratio"      value="$(arg depth_cols_ratio)"/>
+
+    <!-- ROS topic names -->
+    <param name="left_image_topic"      value="left/image_rect_gray" />
+    <param name="left_cam_info_topic"   value="left/camera_info" />
+    
+    <param name="right_image_topic"      value="right/image_rect_gray" />
+    <param name="right_cam_info_topic"   value="right/camera_info" />
+    
+    <param name="depth_image_topic"      value="depth/depth_registered" />
+    <param name="depth_cam_info_topic"   value="depth/camera_info" />
+
+    <param name="point_cloud_topic"     value="point_cloud/cloud_registered" />
+  
+  
+  </node>
+
+  <!-- ROS URDF description of the leadsense -->
+  <param name="leadsense_description" textfile="$(find leadsense_ros)/urdf/leadsense.urdf" />
+  <node name="leadsense_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+    <remap from="robot_description" to="leadsense_description" />
+  </node>
+  
+</launch>
