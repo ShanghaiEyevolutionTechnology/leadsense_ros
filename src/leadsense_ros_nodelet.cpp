@@ -30,8 +30,6 @@
 #include <boost/make_shared.hpp>
 
 #include <evo_depthcamera.h>
-#include <evo_mat.h>
-#include <evo_global_define.h>
 #include <evo_matconverter.h>
 
 #include <sensor_msgs/PointCloud2.h>
@@ -72,14 +70,14 @@ namespace leadsense_ros {
         Mat<float> evo_pointcloud;
 
         // Launch usb_stereoparameters
-        int resolution_fps;//RESOLUTION_MODE_HD720_HALF
+        int resolution_fps;
         int ros_rate;
         int camera_index = 0;
         int workmode; 
         
         //flag
         int confidence;
-        bool auto_exposure=true;
+        bool auto_exposure = true;
         double exposure_time;
         int openniDepthMode=0;// 16 bit UC data in mm else 32F in m, for more info http://www.ros.org/reps/rep-0118.html
         
@@ -158,24 +156,24 @@ namespace leadsense_ros {
 			bool rectified = true;        
             StereoParameters stereo_param=camera->getStereoParameters(rectified);
 
-            int width=camera->getImageSizeFPS().width;
-            int height=camera->getImageSizeFPS().height;
+            int width = camera->getImageSizeFPS().width;
+            int height = camera->getImageSizeFPS().height;
 
-            NODELET_INFO("camera resolution:%d x %d",width,height);
+            NODELET_INFO("camera resolution:%d x %d", width, height);
           
-            float baseline = stereo_param.T.value[0]*0.001; // baseline converted in meters
-            NODELET_INFO("base_line: %f m",baseline);
+            float baseline = abs(stereo_param.T.value[0]) * 0.001f; // baseline converted in meters
+            NODELET_INFO("base_line: %f m", baseline);
             float fx = stereo_param.leftCam.focal.x;
             float fy = stereo_param.leftCam.focal.y;
             float cx = stereo_param.leftCam.center.x;
             float cy =  stereo_param.leftCam.center.y;
             
              // There is no distorsions since the images are rectified
-            double k1 = 0;
-            double k2 = 0;
-            double k3 = 0;
-            double p1 = 0;
-            double p2 = 0;
+            float k1 = 0;
+            float k2 = 0;
+            float k3 = 0;
+            float p1 = 0;
+            float p2 = 0;
             NODELET_INFO("fx: %f",fx);
             NODELET_INFO("fy: %f",fy);
             NODELET_INFO("cx: %f",cx);
@@ -253,9 +251,9 @@ namespace leadsense_ros {
         void publishPointCloud(ros::Publisher &pub_cloud, string pointcloud_frame_id, ros::Time t) {
 
             pcl::PointCloud<pcl::PointXYZRGB> point_cloud;
-            point_cloud.width=evo_pointcloud.getWidth();
-            point_cloud.height=evo_pointcloud.getHeight();
-            point_cloud.points.resize(evo_pointcloud.getWidth()*evo_pointcloud.getHeight());
+            point_cloud.width = evo_pointcloud.getWidth();
+            point_cloud.height = evo_pointcloud.getHeight();
+            point_cloud.points.resize(evo_pointcloud.getWidth() * evo_pointcloud.getHeight());
            
            for (int m = 0; m < evo_pointcloud.getWidth() * evo_pointcloud.getHeight(); m++){
               
@@ -290,7 +288,7 @@ namespace leadsense_ros {
         void callback(leadsense_ros::LeadSenseConfig &config, uint32_t level) {
             NODELET_INFO("Reconfigure confidence : %d", config.confidence);
             confidence = config.confidence;
-            auto_exposure=config.auto_exposure;
+            auto_exposure = config.auto_exposure;
             if(!auto_exposure){
 				NODELET_INFO("Reconfigure exposure time : %f", config.exposure_time);
 				exposure_time=config.exposure_time;
@@ -301,8 +299,8 @@ namespace leadsense_ros {
         void device_poll() {
             ros::Rate loop_rate(ros_rate);
             ros::Time old_t = ros::Time::now();
-            int width=camera->getImageSizeFPS().width;
-            int height=camera->getImageSizeFPS().height;
+            int width = camera->getImageSizeFPS().width;
+            int height = camera->getImageSizeFPS().height;
            
             cv::Size cvSize(width, height);
           
@@ -330,7 +328,7 @@ namespace leadsense_ros {
                 if(runloop)
                 {
                     int actual_confidence = (int)(camera->getConfidenceThreshold()*100);
-                    if(actual_confidence!=confidence)
+                    if(actual_confidence != confidence)
                     {
                     	camera->setConfidenceThreshold((float)confidence/100);
                     }
@@ -342,68 +340,72 @@ namespace leadsense_ros {
 				    {
 				    	camera->setExposureTime(exposure_time); 
 				    }
-					
-					//set unit of measurement
-					camera->setMeasureUnit(MEASURE_UNIT_METER);
 
                     ros::Time t = ros::Time::now(); // Get current time
-                    RESULT_CODE err=camera->grab(grab_param);
-                    if(err!=RESULT_CODE_OK)
+                    RESULT_CODE err = camera->grab(grab_param);
+                    if(err != RESULT_CODE_OK)
                     {
                         NODELET_DEBUG("Wait for a new image to proceed");
                         std::this_thread::sleep_for(std::chrono::milliseconds(2));
                         if ((t - old_t).toSec() > 5) 
-                        {// delete the old object before constructing a new one
+                        {
+							// delete the old object before constructing a new one
+							camera->close();
                             camera.reset();
                             camera.reset(new DepthCamera());
                             NODELET_INFO("Re-openning the leadsense_camera");
-                            RESULT_CODE res=RESULT_CODE_INVALID_CAMERA;
-                            while(res!=RESULT_CODE_OK)
+                            RESULT_CODE res = RESULT_CODE_INVALID_CAMERA;
+                            while(res != RESULT_CODE_OK)
                             {
-                              res=camera->open((RESOLUTION_FPS_MODE)resolution_fps,camera_index,(WORK_MODE)workmode);
-                                NODELET_INFO_STREAM("depth camera reopen (live): "<<result_code2str(res));
+                              res = camera->open((RESOLUTION_FPS_MODE)resolution_fps, camera_index, (WORK_MODE)workmode);
+                                NODELET_INFO_STREAM("depth camera reopen (live): " << result_code2str(res));
                                 std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                             }
-        
+					
+							//set unit of measurement
+							camera->setMeasureUnit(MEASURE_UNIT_METER);
+							//set auto exposure
+							camera->useAutoExposure(auto_exposure); 
+							//set exposure time
+							if(!auto_exposure)
+               					camera->setExposureTime(exposure_time);       
                         }
                         continue;
                     }
                     old_t =ros::Time::now();
                     
-                    if(left_SubNum>0)
-                    {
-                       
-                        left=camera->retrieveView(VIEW_TYPE_LEFT, MAT_TYPE_CPU);
-                        leftImage=evoMat2cvMat(left);
+                    if(left_SubNum > 0)
+                    {                       
+                        left = camera->retrieveView(VIEW_TYPE_LEFT, MAT_TYPE_CPU);
+                        leftImage = evoMat2cvMat(left);
                         cv::cvtColor(leftImage, leftImage, CV_RGBA2BGR);
                         publishCamInfo(left_cam_info_msg, pub_left_cam_info, t);
                         publishImage(leftImage, pub_left, left_frame_id, t);
                       
                     }
-                    if(right_SubNum>0)
+                    if(right_SubNum > 0)
                     {
                         right = camera->retrieveView(VIEW_TYPE_RIGHT, MAT_TYPE_CPU);
-                        rightImage=evoMat2cvMat(right);
-                        cv::cvtColor(rightImage,rightImage,CV_RGBA2BGR);
+                        rightImage = evoMat2cvMat(right);
+                        cv::cvtColor(rightImage,rightImage, CV_RGBA2BGR);
                         publishCamInfo(right_cam_info_msg, pub_right_cam_info, t);
                         publishImage(rightImage, pub_right, right_frame_id, t);
                     }
-                    if(depth_SubNum>0)
+                    if(depth_SubNum > 0)
                     {
-                        depth_map=camera->retrieveDepth(DEPTH_TYPE_DISTANCE_Z, MAT_TYPE_CPU);
-                        publishCamInfo(depth_cam_info_msg,pub_depth_cam_info,t);
-                        cv::Mat cv_depth_map=evoMat2cvMat(depth_map);
+                        depth_map = camera->retrieveDepth(DEPTH_TYPE_DISTANCE_Z, MAT_TYPE_CPU);
+                        publishCamInfo(depth_cam_info_msg, pub_depth_cam_info,t);
+                        cv::Mat cv_depth_map = evoMat2cvMat(depth_map);
                        
-                        int depth_cols=cv_depth_map.cols;
-                        int depth_rows=cv_depth_map.rows;
+                        int depth_cols = cv_depth_map.cols;
+                        int depth_rows = cv_depth_map.rows;
                        
-                        cv::Mat depth_map_roi=cv::Mat::zeros(depth_rows,depth_cols,CV_32FC1);
+                        cv::Mat depth_map_roi = cv::Mat::zeros(depth_rows,depth_cols,CV_32FC1);
                         cv_depth_map.rowRange((int)(depth_rows*depth_raws_ratio), depth_rows).colRange((int)(depth_cols*depth_cols_ratio), depth_cols-(int)(depth_cols*depth_cols_ratio)).copyTo(depth_map_roi.rowRange((int)(depth_rows*depth_raws_ratio), depth_rows).colRange((int)(depth_cols*depth_cols_ratio), depth_cols-(int)(depth_cols*depth_cols_ratio))); 
                
-                        publishDepth(depth_map_roi,pub_depth,depth_frame_id,t);
-                      
+                        publishDepth(depth_map_roi,pub_depth,depth_frame_id,t);                      
                     }
-                    if(cloud_SubNum>0)
+                    if(cloud_SubNum > 0)
                     {
                         evo_pointcloud = camera->retrieveDepth(DEPTH_TYPE_POINT_CLOUD_XYZBGRA, MAT_TYPE_CPU);
                         publishPointCloud(pub_cloud,cloud_frame_id,t);                        
@@ -411,16 +413,17 @@ namespace leadsense_ros {
                     loop_rate.sleep();
                 }
             } // while loop
+			camera->close();
             camera.reset();
     }
 
         boost::shared_ptr<dynamic_reconfigure::Server<leadsense_ros::LeadSenseConfig>> server;
         void onInit() {
             // Launch file parameters
-            resolution_fps=RESOLUTION_FPS_MODE_HD720_30;
+            resolution_fps = RESOLUTION_FPS_MODE_HD720_30;
             ros_rate = 30;
             camera_index = 0;
-            workmode=WORK_MODE_FAST;
+            workmode = WORK_MODE_FAST;
           
             depth_raws_ratio=0;
             depth_cols_ratio=0;
@@ -446,15 +449,14 @@ namespace leadsense_ros {
             nh = getMTNodeHandle();
             nh_ns = getMTPrivateNodeHandle();
             
-            nh_ns.getParam("depth_raws_ratio",depth_raws_ratio);
-            nh_ns.getParam("depth_cols_ratio",depth_cols_ratio);
+            nh_ns.getParam("depth_raws_ratio", depth_raws_ratio);
+            nh_ns.getParam("depth_cols_ratio", depth_cols_ratio);
 
             // Get parameters from launch file
             nh_ns.getParam("deviceId", camera_index );
             nh_ns.getParam("ros_rate", ros_rate);
-	        nh_ns.getParam("resolution_fps",resolution_fps);
-            nh_ns.getParam("work_mode",workmode);
-
+	        nh_ns.getParam("resolution_fps", resolution_fps);
+            nh_ns.getParam("work_mode", workmode);
 
             nh_ns.getParam("left_image_topic", left_image_topic);
             nh_ns.getParam("left_cam_info_topic", left_cam_info_topic);
@@ -462,37 +464,42 @@ namespace leadsense_ros {
 
             nh_ns.getParam("right_image_topic", right_image_topic);
             nh_ns.getParam("right_cam_info_topic", right_cam_info_topic);
-            nh_ns.getParam("right_frame_id",right_frame_id);
+            nh_ns.getParam("right_frame_id", right_frame_id);
             
-            nh_ns.getParam("depth_image_topic",depth_image_topic);
-            nh_ns.getParam("depth_cam_info_topic",depth_cam_info_topic);
-            nh_ns.getParam("depth_frame_id",depth_frame_id);
+            nh_ns.getParam("depth_image_topic", depth_image_topic);
+            nh_ns.getParam("depth_cam_info_topic", depth_cam_info_topic);
+            nh_ns.getParam("depth_frame_id", depth_frame_id);
             
-            nh_ns.getParam("point_cloud_topic",point_cloud_topic);
-            nh_ns.getParam("cloud_frame_id",cloud_frame_id);
-            nh_ns.getParam("auto_exposure",auto_exposure);
+            nh_ns.getParam("point_cloud_topic", point_cloud_topic);
+            nh_ns.getParam("cloud_frame_id", cloud_frame_id);
+            nh_ns.getParam("auto_exposure", auto_exposure);
                       
             camera.reset(new DepthCamera());
             
-            RESULT_CODE res=RESULT_CODE_INVALID_CAMERA;
-            while(res!=RESULT_CODE_OK)
+            RESULT_CODE res = RESULT_CODE_INVALID_CAMERA;
+            while(res != RESULT_CODE_OK)
             {
-                res=camera->open( (RESOLUTION_FPS_MODE)resolution_fps,camera_index,(WORK_MODE)workmode);
-                NODELET_INFO_STREAM("depth camera open (live): "<<result_code2str(res));
+                res = camera->open( (RESOLUTION_FPS_MODE)resolution_fps, camera_index, (WORK_MODE)workmode);
+                NODELET_INFO_STREAM("depth camera open (live): " << result_code2str(res));
                 std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             }
+					
+			//set unit of measurement
+			camera->setMeasureUnit(MEASURE_UNIT_METER);
+			//set auto exposure
+			camera->useAutoExposure(auto_exposure);
+
             if(nh_ns.getParam("confidence", confidence))
-                camera->setConfidenceThreshold((float)confidence/100);
-            if(nh_ns.getParam("exposure_time",exposure_time))
-               camera->setExposureTime(exposure_time);
+                camera->setConfidenceThreshold((float)confidence / 100.0f);
+			if(!auto_exposure)
+            	if(nh_ns.getParam("exposure_time", exposure_time))
+               		camera->setExposureTime(exposure_time);
             
              //Reconfigure confidence
             server=boost::make_shared<dynamic_reconfigure::Server<leadsense_ros::LeadSenseConfig>>();
             dynamic_reconfigure::Server<leadsense_ros::LeadSenseConfig>::CallbackType f;
-            f=boost::bind(&LeadSenseNodelet::callback,this,_1,_2);
+            f=boost::bind(&LeadSenseNodelet::callback, this, _1, _2);
             server->setCallback(f);
-            if(!auto_exposure)
-                camera->setExposureTime(exposure_time);
             
             // Create all the publishers
             // Image publishers
@@ -501,7 +508,7 @@ namespace leadsense_ros {
             NODELET_INFO_STREAM("Advertized on topic " << left_image_topic); 
             pub_right = it_stereo.advertise(right_image_topic, 1); //right
             NODELET_INFO_STREAM("Advertized on topic " << right_image_topic);
-            pub_depth=it_stereo.advertise(depth_image_topic,1);
+            pub_depth=it_stereo.advertise(depth_image_topic, 1); //depth
             NODELET_INFO_STREAM("Advertized on topic "<<depth_image_topic);
             
             // Camera info publishers
@@ -509,11 +516,11 @@ namespace leadsense_ros {
             NODELET_INFO_STREAM("Advertized on topic " << left_cam_info_topic);
             pub_right_cam_info = nh.advertise<sensor_msgs::CameraInfo>(right_cam_info_topic, 1); //right
             NODELET_INFO_STREAM("Advertized on topic " << right_cam_info_topic);
-            pub_depth_cam_info = nh.advertise<sensor_msgs::CameraInfo>(depth_cam_info_topic, 1); //right
+            pub_depth_cam_info = nh.advertise<sensor_msgs::CameraInfo>(depth_cam_info_topic, 1); //depth
             NODELET_INFO_STREAM("Advertized on topic " << depth_cam_info_topic);
             
             //pointCloud publisher
-            pub_cloud=nh.advertise<sensor_msgs::PointCloud2>(point_cloud_topic,1);
+            pub_cloud=nh.advertise<sensor_msgs::PointCloud2>(point_cloud_topic, 1);
             NODELET_INFO_STREAM("Advertized on topic "<<point_cloud_topic);
 
             device_poll_thread = boost::shared_ptr<boost::thread>

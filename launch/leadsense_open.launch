@@ -5,7 +5,7 @@
   <arg name="resolution_fps"    default="12"/> <!-- RESOLUTION_FPS_MODE_HD720_50 -->
   <arg name="work_mode"     default="0"/> <!-- WORK_MODE_FAST -->
   <arg name="confidence"    default="80"/>
-  <arg name="auto_exposure" default="false"/>
+  <arg name="auto_exposure" default="true"/>
   <arg name="exposure_time" default="4.5"/>
   <arg name="namespace"     default ="leadsense"/>
   <arg name="depth_raws_ratio" default="0"/>
@@ -25,5 +25,5 @@
      
     </include>
  </group> 
- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find leadsense_ros)/rviz/leadsense.rviz"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find leadsense_ros)/rviz/leadsense.rviz"/>
 </launch>

@@ -5,7 +5,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 1.57 0"/>
             <geometry>
-                <cylinder radius="0.007" length=".03406"/>
+                <cylinder radius="0.007" length="0.004"/>
             </geometry>
             <material name="dark_grey">
                 <color rgba="0.1 0.1 0.1 1"/>
@@ -16,10 +16,10 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://leadsense_ros/urdf/leadsenseL.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://leadsense_ros/urdf/leadsenseL.stl" scale="0.001 0.001 0.001"/>
             </geometry>
             <material name="grey">
-                <color rgba="0.8 0.8 0.8 0.8"/>
+                <color rgba="0.8 0.8 0.8 1"/>
             </material>
         </visual>
     </link>
@@ -27,7 +27,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 1.57 0"/>
             <geometry>
-                <cylinder radius="0.007" length=".03406"/>
+                <cylinder radius="0.007" length="0.004"/>
             </geometry>
             <material name="dark_grey">
                 <color rgba="0.1 0.1 0.1 1"/>
@@ -38,7 +38,7 @@
     <joint name="leadsense_center_joint" type="fixed">
         <parent link="leadsense_left_camera"/>
         <child link="leadsense_center"/>
-        <origin xyz="0 -0.06 0" rpy="0 0 0" />
+        <origin xyz="0 0 0" rpy="-1.57 0 -1.57" />
     </joint>
     <joint name="leadsense_right_camera_joint" type="fixed">
         <parent link="leadsense_left_camera"/>

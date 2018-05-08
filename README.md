@@ -19,10 +19,10 @@ roslaunch leadsense_ros leadsense_open.launch
 ```
 
 ### Rectified Image Topics:
-- /leadsense/left/image_rect_gray   
-- /leadsense/right/image_rect_gray   
+- /leadsense/left/image_rect_gray
+- /leadsense/right/image_rect_gray
 - /leadsense/depth/depth_registered
 
-### PointCloud Topic：
-- /leadsense/point_cloud/cloud_registered    
+### PointCloud Topic:
+- /leadsense/point_cloud/cloud_registered
 	
