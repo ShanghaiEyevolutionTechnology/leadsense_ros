@@ -1,0 +1,35 @@
+<launch>
+
+	<arg name="device_id"	default="0"/>
+	<arg name="ros_rate"	default="30"/>
+	<arg name="evo_filepath"	default=""/> <!-- Evo file mode, resolution_fps/auto_exposure/... is invalid -->
+	<arg name="resolution_fps"	default="12"/> <!-- Live mode, 12: RESOLUTION_FPS_MODE_HD720_50 -->
+	<arg name="work_mode"	default="0"/> <!-- Distance calculation mode, 0: WORK_MODE_FAST -->
+	<arg name="confidence"	default="20"/> <!-- Confidence threshold. (Higher for a noiseless result) -->
+	<arg name="auto_exposure"	default="true"/> <!-- Enable/Disable auto exposure -->
+	<arg name="exposure_time"	default="4.5"/> <!-- Set the exposure time when manual controlled -->
+	<arg name="calc_distance"	default="true" /> <!-- When only need rectified images, set false -->
+	<arg name="max_distance"	default="10"/> <!-- Max distance Range when distance calculation is valid -->
+	<arg name="gravity"	default="9.8"/> <!-- Local gravity value -->
+	<arg name="imu_using_9_axes"	default="false"/> <!-- IMU fusion result using magnet or not -->
+
+	<group ns="leadsense">
+		<include file="$(find leadsense_ros)/launch/leadsense.launch">
+			<arg name="device_id"	value="$(arg device_id)"/>
+			<arg name="ros_rate"	value="$(arg ros_rate)"/>
+			<arg name="evo_filepath"	value="$(arg evo_filepath)"/>
+			<arg name="resolution_fps"	value="$(arg resolution_fps)"/>
+			<arg name="work_mode"	value="$(arg work_mode)"/>
+			<arg name="confidence"	value="$(arg confidence)"/>
+			<arg name="auto_exposure"	value="$(arg auto_exposure)"/>
+			<arg name="exposure_time"	value="$(arg exposure_time)"/>
+			<arg name="calc_distance"	value="$(arg calc_distance)"/>
+			<arg name="max_distance"	value="$(arg max_distance)"/>
+			<arg name="gravity"	value="$(arg gravity)"/>
+			<arg name="imu_using_9_axes"	value="$(arg imu_using_9_axes)"/>
+		</include>
+	</group>
+	
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find leadsense_ros)/rviz/leadsense.rviz"/>
+	
+</launch>

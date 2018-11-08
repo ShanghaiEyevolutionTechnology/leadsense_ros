@@ -1,49 +1,60 @@
 <launch>
  
-  <arg name="device_id"/>
-  <arg name="ros_rate"/>
-  <arg name="resolution_fps"/>
-  <arg name="work_mode"/>
-  <arg name="auto_exposure"/>
-  <arg name="exposure_time"/>
-  <arg name="confidence"/>
-  <arg name="depth_raws_ratio"/>
-  <arg name="depth_cols_ratio"/>
+	<arg name="device_id"/>
+	<arg name="ros_rate"/>
+	<arg name="evo_filepath" />
+	<arg name="resolution_fps"/>
+	<arg name="work_mode"/>
+	<arg name="auto_exposure"/>
+	<arg name="exposure_time"/>
+	<arg name="calc_distance"/>
+	<arg name="max_distance"/>
+	<arg name="confidence"/>
+	<arg name="gravity"/>
+	<arg name="imu_using_9_axes"/>
 
-  <include file="$(find leadsense_ros)/launch/leadsense_tf.launch" />
+	<include file="$(find leadsense_ros)/launch/leadsense_tf.launch" />
 
-  <node name="leadsense_ros_node" pkg="leadsense_ros" type="leadsense_ros_node" output="screen">
-    <!-- leadsense parameters -->
-    <param name="deviceId"              value="$(arg device_id)" />
-    <param name="ros_rate"            value="$(arg ros_rate)" />
-    <param name="resolution_fps"            value="$(arg resolution_fps)" />
-    <param name="work_mode"             value="$(arg work_mode)" />
-    <param name="confidence"            value="$(arg confidence)"/>
-    <param name="exposure_time" value="$(arg exposure_time)"/>
-    <param name="auto_exposure" value="$(arg auto_exposure)"/>
-  
-    <param name="depth_raws_ratio"      value="$(arg depth_raws_ratio)"/>
-    <param name="depth_cols_ratio"      value="$(arg depth_cols_ratio)"/>
+	<node name="leadsense_ros_node" pkg="leadsense_ros" type="leadsense_ros_node" output="screen">
+		<!-- leadsense parameters -->
+		<param name="deviceId"	value="$(arg device_id)" />
+		<param name="ros_rate"	value="$(arg ros_rate)" />
+		<param name="evo_filepath" value="$(arg evo_filepath)" />
+		<param name="resolution_fps"	value="$(arg resolution_fps)" />
+		<param name="work_mode"	value="$(arg work_mode)" />
+		<param name="confidence"	value="$(arg confidence)"/>
+		<param name="exposure_time"	value="$(arg exposure_time)"/>
+		<param name="auto_exposure"	value="$(arg auto_exposure)"/>
+		<param name="max_distance"	value="$(arg max_distance)"/>
+		<param name="gravity"	value="$(arg gravity)" />
+		<param name="imu_using_9_axes"	value="$(arg imu_using_9_axes)" />
+		<param name="calc_distance"	value="$(arg calc_distance)" />
 
-    <!-- ROS topic names -->
-    <param name="left_image_topic"      value="left/image_rect_gray" />
-    <param name="left_cam_info_topic"   value="left/camera_info" />
+		<!-- ROS topic names -->
+		<param name="left_image_topic"      value="left/image_rect_gray" />
+		<param name="left_cam_info_topic"   value="left/camera_info" />
     
-    <param name="right_image_topic"      value="right/image_rect_gray" />
-    <param name="right_cam_info_topic"   value="right/camera_info" />
+		<param name="right_image_topic"      value="right/image_rect_gray" />
+		<param name="right_cam_info_topic"   value="right/camera_info" />
     
-    <param name="depth_image_topic"      value="depth/depth_registered" />
-    <param name="depth_cam_info_topic"   value="depth/camera_info" />
+		<param name="depth_image_topic"      value="depth/depth_registered" />
+		<param name="depth_cam_info_topic"   value="depth/camera_info" />
 
-    <param name="point_cloud_topic"     value="point_cloud/cloud_registered" />
+		<param name="disparity_topic"      value="disparity/disparity" />
+
+		<param name="point_cloud_topic"     value="point_cloud/cloud_registered" />
+
+		<param name="imu_topic"     value="imu/data" />
+		<param name="imu_raw_topic"     value="imu/data_raw" />
+		<param name="mag_topic"     value="imu/mag" />
   
   
-  </node>
+	</node>
 
-  <!-- ROS URDF description of the leadsense -->
-  <param name="leadsense_description" textfile="$(find leadsense_ros)/urdf/leadsense.urdf" />
-  <node name="leadsense_state_publisher" pkg="robot_state_publisher" type="state_publisher">
-    <remap from="robot_description" to="leadsense_description" />
-  </node>
+	<!-- ROS URDF description of the leadsense -->
+	<param name="leadsense_description" textfile="$(find leadsense_ros)/urdf/leadsense.urdf" />
+	<node name="leadsense_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+		<remap from="robot_description" to="leadsense_description" />
+	</node>
   
 </launch>

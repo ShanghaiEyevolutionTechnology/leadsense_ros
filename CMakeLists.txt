@@ -7,11 +7,6 @@ IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
-SET(OCV_VERSION "3")
-
-find_package(OpenCV ${OCV_VERSION} REQUIRED)
-find_package(PCL REQUIRED)
-
 find_package(EvoBinoSDK REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -21,22 +16,19 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   dynamic_reconfigure
   tf2_ros
-  pcl_conversions
   nodelet
 )
 
-generate_dynamic_reconfigure_options( cfg/LeadSense.cfg) 
+generate_dynamic_reconfigure_options(cfg/LeadSense.cfg) 
 
 catkin_package(
   CATKIN_DEPENDS
     roscpp
     rosconsole
     sensor_msgs
-    opencv
     image_transport
     dynamic_reconfigure
     tf2_ros
-    pcl_conversions
 )
 
 
@@ -47,8 +39,6 @@ catkin_package(
 # Specify locations of header files.
 include_directories(
 	${catkin_INCLUDE_DIRS}
-	${OpenCV_INCLUDE_DIRS}
-	${PCL_INCLUDE_DIRS}
 	${EvoBinoSDK_INCLUDE_DIRS}
 )
 
@@ -65,8 +55,6 @@ add_definitions(-std=c++11)
 
 set(LINK_LIBRARIES
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBS}
-  ${PCL_LIBRARIES}
   ${EvoBinoSDK_LIBRARIES} 
 )
 
