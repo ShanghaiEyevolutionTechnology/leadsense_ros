@@ -654,7 +654,7 @@ namespace leadsense_ros {
 					od_para.delta = 0.0036f;
 					od_para.beta = 0.0014f;
 					od_para.threshold1 = 25;
-					od_para.threshold2 = 37;;
+					od_para.threshold2 = 37;
 					od_para.obstacleMaxHeight = INFINITY;
 					od_para.obstacleMinSize.x = 0.02f;//since we use unfiltered result, no use here
 					od_para.obstacleMinSize.y = 0.05f;//since we use unfiltered result, no use here
