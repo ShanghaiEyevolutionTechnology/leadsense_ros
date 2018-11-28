@@ -12,6 +12,7 @@
 	<arg name="confidence"/>
 	<arg name="gravity"/>
 	<arg name="imu_using_9_axes"/>
+	<arg name="obstacle_detection"/>
 
 	<include file="$(find leadsense_ros)/launch/leadsense_tf.launch" />
 
@@ -29,6 +30,7 @@
 		<param name="gravity"	value="$(arg gravity)" />
 		<param name="imu_using_9_axes"	value="$(arg imu_using_9_axes)" />
 		<param name="calc_distance"	value="$(arg calc_distance)" />
+		<param name="obstacle_detection"	value="$(arg obstacle_detection)" />
 
 		<!-- ROS topic names -->
 		<param name="left_image_topic"      value="left/image_rect_gray" />
@@ -47,6 +49,14 @@
 		<param name="imu_topic"     value="imu/data" />
 		<param name="imu_raw_topic"     value="imu/data_raw" />
 		<param name="mag_topic"     value="imu/mag" />
+		<param name="mag_raw_topic"     value="imu/mag_raw" />
+		
+		<param name="camera_height_topic"     value="left/camera_height" />
+		<param name="camera_pitch_topic"     value="left/camera_pitch" />
+		<param name="camera_roll_topic"     value="left/camera_roll" />
+		<param name="laser_scan_topic"     value="left/laser_scan" />
+		<param name="image_with_obstacle_topic"      value="left/image_with_obstacle" />
+		<param name="image_with_ground_topic"      value="left/image_with_ground" />
   
   
 	</node>

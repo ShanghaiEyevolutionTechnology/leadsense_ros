@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.1)
 
 project(leadsense_ros)
 
@@ -9,14 +9,23 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 
 find_package(EvoBinoSDK REQUIRED)
 
+exec_program(uname ARGS -p OUTPUT_VARIABLE CMAKE_SYSTEM_NAME2)
+if ( CMAKE_SYSTEM_NAME2 MATCHES "aarch64" ) # Jetson TX
+    set(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
+    message(STATUS "Jetson TX")
+endif()
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rosconsole
+  std_msgs
   sensor_msgs
+  stereo_msgs
   image_transport
   dynamic_reconfigure
   tf2_ros
   nodelet
+  message_generation
 )
 
 generate_dynamic_reconfigure_options(cfg/LeadSense.cfg) 
@@ -25,7 +34,9 @@ catkin_package(
   CATKIN_DEPENDS
     roscpp
     rosconsole
+    std_msgs
     sensor_msgs
+    stereo_msgs
     image_transport
     dynamic_reconfigure
     tf2_ros
@@ -43,8 +54,6 @@ include_directories(
 )
 
 
-#link_directories(${OpenCV_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
-
 
 ###############################################################################
 
@@ -60,11 +69,11 @@ set(LINK_LIBRARIES
 
 add_library(leadsense_ros_nodelet src/leadsense_ros_nodelet.cpp)
 target_link_libraries(leadsense_ros_nodelet ${LINK_LIBRARIES})
-#add_dependencies(leadsense_ros_nodelet ${PROJECT_NAME}_gencfg)
+add_dependencies(leadsense_ros_nodelet ${PROJECT_NAME}_gencfg)
 
 add_executable(leadsense_ros_node src/leadsense_ros_node.cpp)
-target_link_libraries(leadsense_ros_node ${catkin_LIBRARIES})
-#add_dependencies(leadsense_ros_node ${PROJECT_NAME}_gencfg)
+target_link_libraries(leadsense_ros_node leadsense_ros_nodelet ${LINK_LIBRARIES})
+add_dependencies(leadsense_ros_node ${PROJECT_NAME}_gencfg)
 
 
 #Add all files in subdirectories of the project in
@@ -86,6 +95,7 @@ target_link_libraries(leadsense_ros_node ${catkin_LIBRARIES})
 #  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 #install(DIRECTORY
 #  launch
+#  urdf
 #  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 ###############################################################################

@@ -9,9 +9,10 @@
 	<arg name="auto_exposure"	default="true"/> <!-- Enable/Disable auto exposure -->
 	<arg name="exposure_time"	default="4.5"/> <!-- Set the exposure time when manual controlled -->
 	<arg name="calc_distance"	default="true" /> <!-- When only need rectified images, set false -->
-	<arg name="max_distance"	default="10"/> <!-- Max distance Range when distance calculation is valid -->
+	<arg name="max_distance"	default="8"/> <!-- Max distance Range when distance calculation is valid -->
 	<arg name="gravity"	default="9.8"/> <!-- Local gravity value -->
 	<arg name="imu_using_9_axes"	default="false"/> <!-- IMU fusion result using magnet or not -->
+	<arg name="obstacle_detection"	default="false"/> <!-- Do obstacle detection or not -->
 
 	<group ns="leadsense">
 		<include file="$(find leadsense_ros)/launch/leadsense.launch">
@@ -27,6 +28,7 @@
 			<arg name="max_distance"	value="$(arg max_distance)"/>
 			<arg name="gravity"	value="$(arg gravity)"/>
 			<arg name="imu_using_9_axes"	value="$(arg imu_using_9_axes)"/>
+			<arg name="obstacle_detection"	value="$(arg obstacle_detection)"/>
 		</include>
 	</group>
 	
