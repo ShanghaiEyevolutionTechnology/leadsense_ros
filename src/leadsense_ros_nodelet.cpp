@@ -864,7 +864,7 @@ namespace leadsense_ros {
 					frame_rate = 30;
 					break;
 				case evo::bino::RESOLUTION_FPS_MODE_HD800_15:
-					frame_rate = 30;
+					frame_rate = 15;
 					break;
 				//HD720
 				case evo::bino::RESOLUTION_FPS_MODE_HD720_120:
