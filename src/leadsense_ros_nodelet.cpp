@@ -29,7 +29,6 @@
 
 #include <evo_depthcamera.h>
 
-
 using namespace std;
 
 namespace leadsense_ros {
@@ -42,6 +41,7 @@ namespace leadsense_ros {
 		ros::NodeHandle nh;
 		ros::NodeHandle nh_ns;
 		boost::shared_ptr<boost::thread> device_poll_thread;
+		boost::shared_ptr<dynamic_reconfigure::Server<leadsense_ros::LeadSenseConfig>> server;
 
 		image_transport::Publisher pub_left;
 		image_transport::Publisher pub_right;
@@ -73,7 +73,7 @@ namespace leadsense_ros {
 
 		//parameters
 		int resolution_fps;
-		int ros_rate;
+		int frame_rate;
 		int camera_index = 0;
 		int workmode;
 		bool has_imu = false;
@@ -590,7 +590,7 @@ namespace leadsense_ros {
 				//auto re-open
 				if (res != evo::RESULT_CODE_OK)
 				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				}
 				else
 				{
@@ -598,10 +598,14 @@ namespace leadsense_ros {
 				}
 			}
 
-			stereo_param = camera.getStereoParameters(true);
+			//check resolution & fps again
 			img_width = camera.getImageSizeFPS().width;
 			img_height = camera.getImageSizeFPS().height;
-			NODELET_INFO("camera resolution: %d x %d", img_width, img_height);
+			frame_rate = camera.getImageSizeFPS().fps;
+			NODELET_INFO("camera resolution: %d x %d, FPS: %d", img_width, img_height, frame_rate);
+
+			//get stereo parameters
+			stereo_param = camera.getStereoParameters(true);
 
 			//set unit of measurement
 			camera.setMeasureUnit(evo::bino::MEASURE_UNIT_METER);
@@ -672,7 +676,7 @@ namespace leadsense_ros {
 
 		void device_poll()
 		{
-			ros::Rate loop_rate(ros_rate);
+			ros::Rate loop_rate(frame_rate);
 			ros::Time old_t = ros::Time::now();
 
 			// Create and fill the camera information messages
@@ -716,16 +720,22 @@ namespace leadsense_ros {
 					
 					if (res == evo::RESULT_CODE_END_OF_EVO_FILE)
 					{
-						NODELET_INFO_STREAM("evo file reach end, press Ctrl+C exit...");
+						NODELET_INFO("evo file reach end, press Ctrl+C exit...");
 						camera.close();	
+					}
+					else if (res == evo::RESULT_CODE_INVALID_CAMERA)
+					{
+						NODELET_INFO("Camera disconnected? Re-openning the leadsense camera");
+						open_camera();
+						continue;
 					}
 					else if (res != evo::RESULT_CODE_OK)
 					{
 						NODELET_DEBUG("Wait for a new image to proceed");
 						std::this_thread::sleep_for(std::chrono::milliseconds(2));
-						if ((t - old_t).toSec() > 5)
+						if ((t - old_t).toSec() > 2)
 						{
-							NODELET_INFO("Re-openning the leadsense camera");							
+							NODELET_INFO("Re-openning the leadsense camera");
 							open_camera();
 						}
 						continue;
@@ -820,19 +830,94 @@ namespace leadsense_ros {
 						publishImage(image_with_ground, pub_image_with_ground, obstacle_detection_frame_id, cur_image_time);
 					}
 										
-					loop_rate.sleep();
+					if (!loop_rate.sleep())
+					{
+						NODELET_WARN_STREAM_THROTTLE(10.0, "Actual loop time " << loop_rate.cycleTime() << " is longer than target loop time " << loop_rate.expectedCycleTime() << ". Consider to lower the 'resolution_fps' setting?");
+					}
+				}
+				else
+				{
+					NODELET_WARN_THROTTLE(10.0, "No topics subscribed by user");
 				}
 			} // while loop
 			camera.close();
 		}
 
-		boost::shared_ptr<dynamic_reconfigure::Server<leadsense_ros::LeadSenseConfig>> server;
+		void checkResolutionFPSMode()
+		{
+			switch (resolution_fps)
+			{
+				//HD800
+				case evo::bino::RESOLUTION_FPS_MODE_HD800_120:
+					frame_rate = 120;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD800_100:
+					frame_rate = 100;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD800_60:
+					frame_rate = 60;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD800_50:
+					frame_rate = 50;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD800_30:
+					frame_rate = 30;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD800_15:
+					frame_rate = 30;
+					break;
+				//HD720
+				case evo::bino::RESOLUTION_FPS_MODE_HD720_120:
+					frame_rate = 120;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD720_100:
+					frame_rate = 100;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD720_60:
+					frame_rate = 60;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD720_50:
+					frame_rate = 50;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD720_30:
+					frame_rate = 30;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_HD720_15:
+					frame_rate = 15;
+					break;
+				//SD400
+				case evo::bino::RESOLUTION_FPS_MODE_SD400_120:
+					frame_rate = 120;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_SD400_100:
+					frame_rate = 100;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_SD400_90:
+					frame_rate = 90;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_SD400_60:
+					frame_rate = 60;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_SD400_30:
+					frame_rate = 30;
+					break;
+				case evo::bino::RESOLUTION_FPS_MODE_SD400_15:
+					frame_rate = 15;
+					break;
+				//else
+				default:
+					NODELET_WARN_STREAM("Wrong 'resolution_fps': " << resolution_fps << ", set to RESOLUTION_FPS_MODE_HD720_30");
+					resolution_fps = evo::bino::RESOLUTION_FPS_MODE_HD720_30;
+					frame_rate = 30;
+					break;
+			}
+		}
 		
 		void onInit()
 		{
 			// Launch file parameters
 			resolution_fps = evo::bino::RESOLUTION_FPS_MODE_HD720_30;
-			ros_rate = 30;
+			frame_rate = 30;
 			camera_index = 0;
 			workmode = evo::bino::WORK_MODE_FAST;
 
@@ -888,7 +973,6 @@ namespace leadsense_ros {
 			nh_ns.param<std::string>("evo_filepath", evo_file_path, std::string());
 
 			nh_ns.getParam("deviceId", camera_index);
-			nh_ns.getParam("ros_rate", ros_rate);
 			nh_ns.getParam("resolution_fps", resolution_fps);
 			nh_ns.getParam("work_mode", workmode);
 
@@ -929,6 +1013,7 @@ namespace leadsense_ros {
 			nh_ns.getParam("image_with_obstacle_topic", image_with_obstacle_topic);
 			nh_ns.getParam("image_with_ground_topic", image_with_ground_topic);
 
+			checkResolutionFPSMode();
 			if (imu_using_9_axes)
 			{
 				imu_data_type = evo::imu::IMU_DATA_TYPE_POSITION_9_AXES;
@@ -939,7 +1024,6 @@ namespace leadsense_ros {
 			}
 			NODELET_INFO_STREAM("IMU using: " << imu_data_type2str(imu_data_type));			
 			
-
 			// Open camera
 			open_camera();
 

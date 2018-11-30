@@ -1,7 +1,6 @@
 <launch>
  
 	<arg name="device_id"/>
-	<arg name="ros_rate"/>
 	<arg name="evo_filepath" />
 	<arg name="resolution_fps"/>
 	<arg name="work_mode"/>
@@ -19,7 +18,6 @@
 	<node name="leadsense_ros_node" pkg="leadsense_ros" type="leadsense_ros_node" output="screen">
 		<!-- leadsense parameters -->
 		<param name="deviceId"	value="$(arg device_id)" />
-		<param name="ros_rate"	value="$(arg ros_rate)" />
 		<param name="evo_filepath" value="$(arg evo_filepath)" />
 		<param name="resolution_fps"	value="$(arg resolution_fps)" />
 		<param name="work_mode"	value="$(arg work_mode)" />
