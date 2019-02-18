@@ -768,7 +768,7 @@ namespace leadsense_ros {
 					}
 					if (cloud_SubNum > 0)
 					{
-						evo_pointcloud = camera.retrieveDepth(evo::bino::DEPTH_TYPE_POINT_CLOUD_XYZBGRA, evo::MAT_TYPE_CPU);
+						evo_pointcloud = camera.retrieveDepth(evo::bino::DEPTH_TYPE_POINT_CLOUD_ORGANIZED_XYZBGRA, evo::MAT_TYPE_CPU);
 						publishPointCloud(evo_pointcloud, pub_cloud, cloud_frame_id, cur_image_time);
 					}
 					if (imu_SubNum + imu_raw_SubNum + mag_SubNum + mag_raw_SubNum > 0)
