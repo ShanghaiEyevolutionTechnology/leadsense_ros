@@ -50,7 +50,10 @@ without RVIZ:
 roslaunch leadsense_ros leadsense_nodisplay.launch 
 ```
 
-**Note**: you could set the parameters by adding options of the launch. For example, if you want to do obstacle detection, add `obstacle_detection:=true`.
+**Note**: you could set the parameters by adding options of the launch. Example:
+
+- If you just want to get images and do not need depth calculation, add `calc_distance:=false`.
+- If you want to do obstacle detection, add `obstacle_detection:=true`.
 
 ### Topics
 
