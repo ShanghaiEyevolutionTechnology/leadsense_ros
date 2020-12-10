@@ -93,7 +93,7 @@ namespace leadsense_ros {
 		float view_angle_h;//view angle horizontal
 		bool first_frame = true;
 		ros::Time start_time_ros;
-		float start_time_camera;
+		unsigned long long start_time_camera;
 
 		template <class T>
 		sensor_msgs::ImagePtr imageToROSmsg(evo::Mat<T> img, std::string frameId, ros::Time t)
@@ -550,7 +550,7 @@ namespace leadsense_ros {
 				}			
 		}
 
-		ros::Time evoTimestamp2ROSTimestamp(float t)
+		ros::Time evoTimestamp2ROSTimestamp(unsigned long long t)
 		{
 			if (first_frame)
 			{
@@ -561,7 +561,7 @@ namespace leadsense_ros {
 			}
 			else
 			{
-				ros::Time n = ros::Time(start_time_ros.toSec() + t - start_time_camera);
+				ros::Time n = ros::Time(start_time_ros.toSec() + ((double)t - start_time_camera) / 1000000000);
 				return n;
 			}
 		}
@@ -672,6 +672,9 @@ namespace leadsense_ros {
 			}
 			
 			first_frame = true;
+
+			// Print SDK version
+			NODELET_INFO("LeadSense SDK version: %s", camera.getSDKVersion().c_str());			
 		}		
 
 		void device_poll()

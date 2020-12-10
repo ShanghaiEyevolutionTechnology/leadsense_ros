@@ -5,7 +5,7 @@ This package lets you use the LeadSense stereo camera with ROS. It outputs the r
 ## Prerequisites
 
 - Ubuntu 16.04
-- EvoBinoSDK >= 1.4.0 and its dependency CUDA
+- EvoBinoSDK >= 1.7.0 and its dependency CUDA
 - ROS Kinetic
 
 **Note**: if you want to use LeadSense without GPU, you could edit `leadsense_ros_nodelet.cpp`: change header file from `evo_depthcamera.h` to `evo_stereocamera.h`, change the camera class from `DepthCamera` to `StereoCamera`, and remove `evo::MAT_TYPE_CPU` in retrieve functions (CPU version do not have this option).
